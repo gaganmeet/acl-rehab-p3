@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACL Rehab Daily Checklist</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ef4444; /* Red-500 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Gray-100 */
+        }
+        .checklist-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .checklist-item.checked {
+            background-color: #fef2f2; /* Red-50 */
+            border-left: 5px solid var(--primary-color);
+            opacity: 0.8;
+        }
+        .checklist-item.checked .task-text {
+            text-decoration: line-through;
+            color: #9ca3af; /* Gray-400 */
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div id="app" class="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl p-6 sm:p-10">
+        
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2 border-b-2 pb-2 border-red-500">
+                LSI Acceleration Protocol
+            </h1>
+            <p class="text-lg text-gray-600">
+                Focus on closing the **20–25% strength deficit**. Progression is criteria-based, not chronological!
+            </p>
+        </header>
+
+        <!-- Day Selector -->
+        <div class="mb-8 p-4 bg-red-100 rounded-lg shadow-inner">
+            <label for="daySelector" class="block text-sm font-medium text-gray-700 mb-2">Select Your Training Day:</label>
+            <select id="daySelector" class="w-full p-3 border border-red-300 rounded-lg text-lg focus:ring-red-500 focus:border-red-500 transition duration-150 ease-in-out">
+                <!-- Options will be populated by JS -->
+            </select>
+        </div>
+
+        <!-- Workout Plan Display -->
+        <div id="workoutContainer">
+            <h2 class="text-2xl font-bold text-red-600 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                Today's Focus: <span id="dayFocus" class="ml-2"></span>
+            </h2>
+            <p id="dayNotes" class="mb-6 text-gray-700 italic border-l-4 border-red-300 pl-3"></p>
+
+            <ul id="checklist" class="space-y-4">
+                <!-- Checklist items will be rendered here -->
+            </ul>
+
+            <div id="emptyMessage" class="hidden mt-8 p-6 text-center bg-gray-50 rounded-lg border border-gray-200">
+                <p class="text-gray-600">No specific workout assigned for this day. Enjoy your scheduled recovery!</p>
+            </div>
+        </div>
+
+        <!-- Warning/Tip Footer -->
+        <footer class="mt-10 pt-6 border-t border-gray-200">
+            <div class="p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded-md">
+                <p class="font-semibold">⚠️ Critical Reminder:</p>
+                <p class="text-sm mt-1">
+                    **DO NOT** progress to cutting, pivoting, or casual soccer until you've reached **$\ge 90\%$ LSI** (Limb Symmetry Index) on strength and hop tests. Listen to your knee: **pain or swelling requires immediate rest and load reduction.**
+                </p>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- Workout Data Structure (Based on Section VI of the Analysis) ---
+        const workouts = {
+            'Monday': {
+                focus: 'Max Strength & Hypertrophy (LSI Priority)',
+                notes: 'Heavy unilateral loading is mandatory. Focus on **volume asymmetry** (more work for the involved limb) and **slow eccentric tempos** to address the 20-25% deficit and neurological inhibition.',
+                activities: [
+                    {
+                        task: 'Single-Leg Leg Press (Involved Limb Focus)',
+                        details: '3-4 sets x 6-10 reps. **4-5 second eccentric (lowering)**. Load should be RPE 8-9 (1-2 Reps In Reserve).'
+                    },
+                    {
+                        task: 'Single-Leg Leg Extension (Involved Limb Focus)',
+                        details: '4 sets x 8-12 reps. **3-4 second eccentric (lowering)**. Best for quadriceps isolation to close the LSI gap.'
+                    },
+                    {
+                        task: 'Seated Hamstring Curls',
+                        details: '3 sets x 10-15 reps. **3 second eccentric (lowering)**. Crucial for Hamstring-to-Quad (H/Q) ratio optimization to protect the graft.'
+                    },
+                    {
+                        task: 'Core Training',
+                        details: '3 sets of 45-60 second planks, 3 sets of 15 mountain climbers per side.'
+                    }
+                ]
+            },
+            'Tuesday': {
+                focus: 'Return to Running (RTR) & Aerobic Base',
+                notes: 'Running must be a **structured walk-to-run progression**. Only advance if you have no pain or swelling 24 hours after the session. Low-impact cycling/elliptical can supplement if needed.',
+                activities: [
+                    {
+                        task: 'Structured Walk/Jog Intervals (Treadmill/Track)',
+                        details: 'Follow the progression table (Week 1: Jog 1 min, Walk 1 min x 7 repeats). Total Run Time: 7 mins.'
+                    },
+                    {
+                        task: 'Low-Impact Cardio',
+                        details: '20 minutes of cycling or elliptical at a comfortable pace.'
+                    },
+                    {
+                        task: 'Gait Assessment',
+                        details: 'During running, actively monitor for non-compensatory gait mechanics (e.g., minimize knee wobble).'
+                    }
+                ]
+            },
+            'Wednesday': {
+                focus: 'Active Recovery & Mobility',
+                notes: 'A mandatory day for central nervous system and tissue recovery. Maintain full, pain-free Range of Motion (ROM).',
+                activities: [
+                    {
+                        task: 'Low-Resistance Cycling/Elliptical',
+                        details: '20-30 minutes at a very low intensity (RPE 3-4).'
+                    },
+                    {
+                        task: 'Light Dynamic Stretching',
+                        details: 'Focus on quad, hamstring, hip flexor, and calf mobility.'
+                    }
+                ]
+            },
+            'Thursday': {
+                focus: 'Functional Power & Agility (Deceleration Focus)',
+                notes: 'Plyometrics are the critical bridge. Prioritize **soft, controlled landing mechanics** over height/distance. Limit total foot contacts to 50–100 total per session.',
+                activities: [
+                    {
+                        task: 'Plyometrics: Double-Leg Box Jumps',
+                        details: '3 sets of 8 reps (low height). Focus on landing softly and silently.'
+                    },
+                    {
+                        task: 'Plyometrics: Single-Leg Broad Jumps',
+                        details: '3 sets of 5 reps per leg. Take off on one leg, land softly on two feet initially.'
+                    },
+                    {
+                        task: 'Agility Ladder Drills (Sagittal/Frontal)',
+                        details: 'Perform Two-Leg Hops, Lateral Shuffles, and Zig-Zag Drills. Focus on quick foot turnover, not speed.'
+                    },
+                    {
+                        task: 'Eccentric Single-Leg Step-Downs (Boxes/Steppers)',
+                        details: '3 sets of 10 reps per leg. **6-second lowering phase** for the involved limb. Builds high-quality braking capacity.'
+                    }
+                ]
+            },
+            'Friday': {
+                focus: 'Stability & Strength Balance',
+                notes: 'Integration day: applying strength with balance demands. Focus on high quality movement and preventing valgus (inward knee) collapse.',
+                activities: [
+                    {
+                        task: 'Bulgarian Split Squats (Dumbbells)',
+                        details: '3-4 sets x 8-12 reps per leg. Ensure the surgical knee tracks over the middle of the foot.'
+                    },
+                    {
+                        task: 'Single-Leg Heel Raises (Calf Strength)',
+                        details: '3 sets x 15-20 reps per leg. Essential for running mechanics.'
+                    },
+                    {
+                        task: 'Primary Standing Hip Abduction/Extension',
+                        details: '3 sets of 15-20 reps with resistance band or cable machine. Strengthens hip stabilizers.'
+                    },
+                    {
+                        task: 'Dynamic Balance Task',
+                        details: 'Perform Standing Anterior Reach (T-shape balance) for 3 sets of 10 per leg.'
+                    }
+                ]
+            },
+            'Saturday': {
+                focus: 'Return to Running (RTR) Volume',
+                notes: 'Increase total distance, but stick to the **10% rule** (max 10% increase in weekly distance). Introduce speed only if comfortable with sustained running.',
+                activities: [
+                    {
+                        task: 'Sustained Running Progression',
+                        details: 'Run until form failure or designated duration (e.g., 10-15 minutes in Week 3). Then walk 1-2 minutes.'
+                    },
+                    {
+                        task: 'Sprint Introduction (If criteria met)',
+                        details: '3-4 sets of 20-yard Sprints (focus on 70-80% maximal speed). Rest 10-20 seconds between sets.'
+                    },
+                    {
+                        task: 'Low-Impact Cool Down',
+                        details: '10 minutes on a cycle or elliptical.'
+                    }
+                ]
+            },
+            'Sunday': {
+                focus: 'Rest',
+                notes: 'Complete physical and mental rest. Crucial for CNS recovery and tissue adaptation. Failure to rest will stall progress and increase injury risk.',
+                activities: []
+            }
+        };
+
+        const daySelector = document.getElementById('daySelector');
+        const checklist = document.getElementById('checklist');
+        const dayFocus = document.getElementById('dayFocus');
+        const dayNotes = document.getElementById('dayNotes');
+        const emptyMessage = document.getElementById('emptyMessage');
+
+        // Function to initialize the day selector and set default day
+        function initializeApp() {
+            const days = Object.keys(workouts);
+            const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const todayName = days[today === 0 ? 6 : today - 1]; // Convert 0 to Sunday, 1 to Monday, etc.
+
+            days.forEach(day => {
+                const option = document.createElement('option');
+                option.value = day;
+                option.textContent = day;
+                if (day === todayName) {
+                    option.selected = true;
+                }
+                daySelector.appendChild(option);
+            });
+
+            daySelector.addEventListener('change', renderWorkout);
+            renderWorkout();
+        }
+
+        // Function to render the workout for the selected day
+        function renderWorkout() {
+            const selectedDay = daySelector.value;
+            const workout = workouts[selectedDay];
+            
+            dayFocus.textContent = selectedDay + ' | ' + workout.focus;
+            dayNotes.innerHTML = `**Goal:** ${workout.notes}`;
+            
+            checklist.innerHTML = '';
+
+            if (workout.activities.length > 0) {
+                emptyMessage.classList.add('hidden');
+                workout.activities.forEach((activity, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'checklist-item p-4 border border-gray-200 rounded-lg shadow-sm bg-white hover:shadow-md cursor-pointer';
+                    listItem.setAttribute('data-index', index);
+                    
+                    // Retrieve checked state from localStorage (persistent state)
+                    const isChecked = localStorage.getItem(`${selectedDay}-task-${index}`) === 'true';
+                    if (isChecked) {
+                        listItem.classList.add('checked');
+                    }
+
+                    listItem.innerHTML = `
+                        <div class="flex items-start">
+                            <input type="checkbox" id="${selectedDay}-task-${index}" class="mt-1 w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500" ${isChecked ? 'checked' : ''}>
+                            <label for="${selectedDay}-task-${index}" class="ml-3 flex-1">
+                                <span class="task-text text-lg font-semibold text-gray-800 block">${activity.task}</span>
+                                <p class="text-sm text-gray-500 mt-1">${activity.details}</p>
+                            </label>
+                        </div>
+                    `;
+                    
+                    // Add event listener for checking/unchecking
+                    listItem.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
+                        const isChecked = e.target.checked;
+                        const taskIndex = e.target.id.split('-').pop();
+                        
+                        // Update UI state
+                        const parentLi = e.target.closest('.checklist-item');
+                        if (isChecked) {
+                            parentLi.classList.add('checked');
+                        } else {
+                            parentLi.classList.remove('checked');
+                        }
+
+                        // Update localStorage state
+                        localStorage.setItem(`${selectedDay}-task-${taskIndex}`, isChecked);
+                    });
+
+                    checklist.appendChild(listItem);
+                });
+            } else {
+                emptyMessage.classList.remove('hidden');
+            }
+        }
+
+        // Initialize when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
